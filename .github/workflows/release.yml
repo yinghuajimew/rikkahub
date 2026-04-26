@@ -19,8 +19,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: 'jetbrains' # ⬅️ 修改为 jetbrains
+          java-version: '21'        # ⬅️ 修改为 21
 
       - name: Gradle cache
         uses: actions/cache@v4
@@ -38,7 +38,6 @@ jobs:
       - name: Gradle Build
         run: |
           chmod +x gradlew
-          # 将 assembleDebug 改为 assembleRelease
           ./gradlew assembleRelease
 
       - name: Upload artifacts
@@ -46,5 +45,4 @@ jobs:
         if: success()
         with:
           name: release-apk
-          # 将打包产物的路径从 debug 改为 release
           path: app/build/outputs/apk/release/*.apk
