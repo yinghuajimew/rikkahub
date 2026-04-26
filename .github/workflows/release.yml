@@ -1,4 +1,4 @@
-name: Release Buil
+name: Release Build
 
 on:
   workflow_dispatch:
@@ -38,11 +38,13 @@ jobs:
       - name: Gradle Build
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          # 将 assembleDebug 改为 assembleRelease
+          ./gradlew assembleRelease
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: artifacts
-          path: app/build/outputs/apk/debug/*.apk
+          name: release-apk
+          # 将打包产物的路径从 debug 改为 release
+          path: app/build/outputs/apk/release/*.apk
