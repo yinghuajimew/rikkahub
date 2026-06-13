@@ -14,11 +14,28 @@ class ProviderManager(client: OkHttpClient, context: Context) {
     private val providers = mutableMapOf<String, Provider<*>>()
 
     init {
-        // 注册默认Provider
-        registerProvider("openai", OpenAIProvider(client, context))
-        registerProvider("google", GoogleProvider(client, context))
-        registerProvider("claude", ClaudeProvider(client, context))
-    }
+    // 在原始 client 基础上套一层 User-Agent 拦截器
+    val patchedClient = client.newBuilder()
+        .addInterceptor { chain ->
+            val original = chain.request()
+            val req = if (original.header("User-Agent") != null) {
+                // 用户已在自定义 Header 里设置了 UA，直接保留
+                original
+            } else {
+                // 否则注入默认 UA，避免暴露底层客户端
+                original.newBuilder()
+                    .header("User-Agent", "RikkaHub/1.0 (Android)")
+                    .build()
+            }
+            chain.proceed(req)
+        }
+        .build()
+
+    // 注册默认Provider（全部换成 patchedClient）
+    registerProvider("openai", OpenAIProvider(patchedClient, context))
+    registerProvider("google", GoogleProvider(patchedClient, context))
+    registerProvider("claude", ClaudeProvider(patchedClient, context))
+}
 
     /**
      * 注册Provider实例
