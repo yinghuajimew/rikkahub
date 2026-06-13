@@ -2,6 +2,9 @@ name: Release Build
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -11,12 +14,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: true
 
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: 'jetbrains' # ⬅️ 修改为 jetbrains
+          java-version: '21'        # ⬅️ 修改为 21
 
       - name: Gradle cache
         uses: actions/cache@v4
@@ -28,12 +32,6 @@ jobs:
 
       - name: Prepare build files
         run: |
-          # 解码base64编码的keystore文件
-          echo "${{ secrets.KEY_BASE64 }}" | base64 -d > app/app.key
-          
-          # 写入签名配置到local.properties
-          echo "${{ secrets.SIGNING_CONFIG }}" > local.properties
-          
           # 写入Google Services配置
           echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/google-services.json
 
@@ -46,5 +44,5 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: artifacts
+          name: release-apk
           path: app/build/outputs/apk/release/*.apk
